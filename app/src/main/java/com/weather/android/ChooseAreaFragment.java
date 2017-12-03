@@ -1,6 +1,7 @@
 package com.weather.android;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -81,6 +82,12 @@ public class ChooseAreaFragment extends Fragment {
                 }else if(currentLevel==LEVEL_CITY){
                     selectedCity=cityList.get(position);
                     queryCounties();
+                }else if (currentLevel==LEVEL_COUNTY){
+                    String weatherId=countyList.get(position).getWeatherId();
+                    Intent intent=new Intent(getActivity(),WeatherActivity.class);
+                    intent.putExtra("weather_id",weatherId);
+                    startActivity(intent);
+                    getActivity().finish();
                 }
             }
         });
@@ -98,7 +105,7 @@ public class ChooseAreaFragment extends Fragment {
     }
 
     //查询所有省份优先从数据库查询
-    public void queryProvinces(){
+    private void queryProvinces(){
         titleText.setText("中国");
         backButton.setVisibility(View.GONE);
         provinceList= DataSupport.findAll(Province.class);
@@ -116,7 +123,7 @@ public class ChooseAreaFragment extends Fragment {
         }
     }
     //查询所有城市优先从数据库查询
-    public void queryCities(){
+    private void queryCities(){
         titleText.setText(selectedProvince.getProvinceName());
         backButton.setVisibility(View.VISIBLE);
         cityList=DataSupport.where("provinceid=?",String.valueOf(selectedProvince.getId())).find(City.class);
@@ -130,12 +137,12 @@ public class ChooseAreaFragment extends Fragment {
             currentLevel=LEVEL_CITY;
         }else{
             int provinceCode=selectedProvince.getProvinceCode();
-            String address="http://guolin.tech/api/china/"+provinceCode;
+            String address="http://guolin.tech/api/china/" + provinceCode;
             queryFromServer(address,"city");
         }
     }
     //查询所有县的数据
-    public void queryCounties(){
+    private void queryCounties(){
         titleText.setText(selectedCity.getCityName());
         backButton.setVisibility(View.VISIBLE);
         countyList=DataSupport.where("cityid=?",String.valueOf(selectedCity.getId())).find(County.class);
@@ -150,7 +157,7 @@ public class ChooseAreaFragment extends Fragment {
         }else{
             int provincedCode=selectedProvince.getProvinceCode();
             int cityCode=selectedCity.getCityCode();
-            String address="http://guolin.tech/api/china/"+provincedCode+"/"+cityCode;
+            String address="http://guolin.tech/api/china/" + provincedCode + "/" + cityCode;
             queryFromServer(address,"county");
         }
     }
@@ -190,7 +197,7 @@ public class ChooseAreaFragment extends Fragment {
                                 queryProvinces();
                             }else if("city".equals(type)){
                                 queryCities();
-                            }else if ("county".equals(type)){
+                            }else if("county".equals(type)){
                                 queryCounties();
                             }
                         }
