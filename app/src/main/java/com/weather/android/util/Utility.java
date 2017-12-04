@@ -1,8 +1,12 @@
 package com.weather.android.util;
 
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.weather.android.WeatherActivity;
 import com.weather.android.db.City;
 import com.weather.android.db.County;
 import com.weather.android.db.Province;
@@ -17,6 +21,7 @@ import org.json.JSONObject;
  */
 
 public class Utility {
+    public static final String TAG="error:";
     //处理服务器返回的省级数据
     public static boolean handleProvinceResponse(String response){
         if(!TextUtils.isEmpty(response)){
@@ -76,10 +81,9 @@ public class Utility {
         }
         return false;
     }
-
-    //将返回的JSON数据解析成Weather实体类
+//    将返回的JSON数据解析成Weather实体类
     public static Weather handleWeatherResponse(String response){
-        try{
+        try {
             JSONObject jsonObject=new JSONObject(response);
             JSONArray jsonArray=jsonObject.getJSONArray("HeWeather");
             String weatherContent=jsonArray.getJSONObject(0).toString();
@@ -89,4 +93,5 @@ public class Utility {
         }
         return null;
     }
+
 }

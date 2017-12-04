@@ -9,11 +9,11 @@ import com.google.gson.annotations.SerializedName;
 public class Forecast {
     public String date;
     @SerializedName("tmp")
-    public Temperture temperture;
+    public Temperature temperature;
 
     @SerializedName("cond")
     public More more;
-    public class Temperture{
+    public class Temperature{
         public String max;
         public String min;
     }
