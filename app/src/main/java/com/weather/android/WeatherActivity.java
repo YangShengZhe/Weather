@@ -1,5 +1,6 @@
 package com.weather.android;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -13,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -36,7 +38,7 @@ import okhttp3.Response;
 public class WeatherActivity extends AppCompatActivity {
     private ScrollView weatherLayout;
     private TextView titleCity;
-    private TextView titleUpdateTime;
+//    private TextView titleUpdateTime;
     private TextView degreeText;
     private TextView weatherInfoText;
     private LinearLayout forecastLayout;
@@ -50,7 +52,7 @@ public class WeatherActivity extends AppCompatActivity {
     private String mWeatherId;
     public DrawerLayout drawerLayout;
     private Button selectButton;
-
+    private com.kyleduo.switchbutton.SwitchButton refreshButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,7 +66,7 @@ public class WeatherActivity extends AppCompatActivity {
         //初始化各种控件
         weatherLayout=(ScrollView)findViewById(R.id.weather_layout);
         titleCity=(TextView)findViewById(R.id.title_city);
-        titleUpdateTime=(TextView)findViewById(R.id.title_update_time);
+//        titleUpdateTime=(TextView)findViewById(R.id.title_update_time);
         degreeText=(TextView)findViewById(R.id.degree_text);
         weatherInfoText=(TextView)findViewById(R.id.weather_info_text);
         forecastLayout=(LinearLayout)findViewById(R.id.forecast_layout);
@@ -73,11 +75,13 @@ public class WeatherActivity extends AppCompatActivity {
         comfortText=(TextView)findViewById(R.id.comfort_text);
         carWashText=(TextView)findViewById(R.id.car_wash_text);
         sportText=(TextView)findViewById(R.id.sport_text);
+        //bing背景图片
         bingPicImg=(ImageView)findViewById(R.id.bing_pic_img);
         refreshLayout=(SwipeRefreshLayout)findViewById(R.id.swipe_refresh);
         refreshLayout.setColorSchemeResources(R.color.colorPrimary);
         drawerLayout=(DrawerLayout)findViewById(R.id.draw_layout);
         selectButton=(Button)findViewById(R.id.select_button);
+        refreshButton=(com.kyleduo.switchbutton.SwitchButton)findViewById(R.id.select_refresh);
         SharedPreferences prefs= PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString =prefs.getString("weather",null);
         if(weatherString!=null){
@@ -113,6 +117,7 @@ public class WeatherActivity extends AppCompatActivity {
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
+
     }
 
     //根据天气id查询天气
@@ -164,11 +169,12 @@ public class WeatherActivity extends AppCompatActivity {
     //处理并显示weather实体类中的数据
     private void showWeatherInfo(Weather weather){
         String cityName=weather.basic.cityName;
-        String updateName=weather.basic.update.updateTime.split(" ")[1];
+//        String updateName=weather.basic.update.updateTime.split(" ")[1];
         String degree=weather.now.temperature+"℃";
         String weatherInfo=weather.now.more.info;
+//        setWeatherPic(weatherInfo);
         titleCity.setText(cityName);
-        titleUpdateTime.setText(updateName);
+//        titleUpdateTime.setText(updateName);
         degreeText.setText(degree);
         weatherInfoText.setText(weatherInfo);
         forecastLayout.removeAllViews();
@@ -195,6 +201,20 @@ public class WeatherActivity extends AppCompatActivity {
         carWashText.setText(carWash);
         sportText.setText(sport);
         weatherLayout.setVisibility(View.VISIBLE);
+
+//        //是否自动刷新的监听器
+//        refreshButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                if (isChecked){
+//                    Intent intent=new Intent(WeatherActivity.this,AutoUpdateService.class);
+//                    startService(intent);
+//                }else {
+//                    Toast.makeText(WeatherActivity.this, "关闭自动更新", Toast.LENGTH_SHORT).show();
+//                }
+//            }
+//        });
+
     }
     private void loadBingPic(){
         String requestBingPic="http://guolin.tech/api/bing_pic";
@@ -219,4 +239,19 @@ public class WeatherActivity extends AppCompatActivity {
             }
         });
     }
+//    //设置实时天气的变换，分别为阴天，雨天，晴天
+//    public void setWeatherPic(String weatherInfo){
+//        LinearLayout NowTitle=(LinearLayout)findViewById(R.id.now_title);
+//        if (weatherInfo.contains("云")){
+//            NowTitle.setBackgroundResource(R.mipmap.cloudy);
+//        }else if(weatherInfo.contains("雨")){
+//            NowTitle.setBackgroundResource(R.mipmap.rain);
+//        }else if(weatherInfo.contains("晴")){
+//            NowTitle.setBackgroundResource(R.mipmap.sunny);
+//        }else if(weatherInfo.contains("雪")){
+//            NowTitle.setBackgroundResource(R.mipmap.snow);
+//        }else if(weatherInfo.contains("阴")){
+//            NowTitle.setBackgroundResource(R.mipmap.cloudy);
+//        }
+//    }
 }

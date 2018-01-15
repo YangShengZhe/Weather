@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="15dp"
+    android:background="#8000">
+    <TextView
+        android:layout_centerInParent="true"
+        android:layout_width="0dp"
+        android:layout_weight="4"
+        android:layout_height="match_parent"
+        android:textColor="#fff"
+        android:text="自动刷新"
+        android:gravity="center_vertical|left"/>
+    <com.kyleduo.switchbutton.SwitchButton
+        android:id="@+id/select_refresh"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content" />
+</LinearLayout>
