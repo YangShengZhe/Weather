@@ -6,7 +6,7 @@ import okhttp3.Request;
 /**
  * Created by Padge on 2017/11/28.
  */
-
+//用于从网上链接数据
 public class HttpUtil {
     public static void sendOkHttpRequest(String address,okhttp3.Callback callback){
         OkHttpClient client=new OkHttpClient();

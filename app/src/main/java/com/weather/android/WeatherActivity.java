@@ -5,7 +5,12 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.ListFragment;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +18,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
@@ -23,22 +29,29 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.weather.android.gson.Forecast;
+import com.weather.android.gson.Now;
 import com.weather.android.gson.Weather;
 import com.weather.android.util.HttpUtil;
 import com.weather.android.util.Utility;
 
-import org.w3c.dom.Text;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
 public class WeatherActivity extends AppCompatActivity {
-    private ScrollView weatherLayout;
+    //下拉刷新的定义
+    public SwipeRefreshLayout swipeRefresh;
+    //右滑菜单的定义
+    public DrawerLayout drawerLayout;
+    private android.support.v4.widget.NestedScrollView weatherLayout;
+    private android.support.v7.widget.Toolbar toolbar;
+    private android.support.design.widget.CollapsingToolbarLayout collapsing;
     private TextView titleCity;
-//    private TextView titleUpdateTime;
     private TextView degreeText;
     private TextView weatherInfoText;
     private LinearLayout forecastLayout;
@@ -48,25 +61,30 @@ public class WeatherActivity extends AppCompatActivity {
     private TextView carWashText;
     private TextView sportText;
     private ImageView bingPicImg;
-    public SwipeRefreshLayout refreshLayout;
+//    public SwipeRefreshLayout refreshLayout;
     private String mWeatherId;
-    public DrawerLayout drawerLayout;
-    private Button selectButton;
+  //  public DrawerLayout drawerLayout;
+    private android.support.design.widget.FloatingActionButton selectButton;
+    private android.support.design.widget.FloatingActionButton menuButton;
+
     private com.kyleduo.switchbutton.SwitchButton refreshButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_weather);
-        //设置状态栏为透明，并且显示栏会加载到状态栏实现全屏的效果
-//        if (Build.VERSION.SDK_INT>=21) {
-//            View WeatherDectorView = getWindow().getDecorView();
-//            WeatherDectorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-//            getWindow().setStatusBarColor(Color.TRANSPARENT);
-//        }
+
         //初始化各种控件
-        weatherLayout=(ScrollView)findViewById(R.id.weather_layout);
+        swipeRefresh=(SwipeRefreshLayout)findViewById(R.id.swipe_refresh);
+        //设置下拉的颜色
+        swipeRefresh.setColorSchemeResources(R.color.colorPrimary);
+//        //下拉距离
+//        swipeRefresh.setDistanceToTriggerSync(100);
+        //右滑菜单
+        drawerLayout=(DrawerLayout)findViewById(R.id.drawer_layout);
+        weatherLayout=(android.support.v4.widget.NestedScrollView) findViewById(R.id.weather_layout);
+        toolbar=(android.support.v7.widget.Toolbar)findViewById(R.id.tb_toolbar);
+        collapsing=(android.support.design.widget.CollapsingToolbarLayout)findViewById(R.id.Collapsing);
         titleCity=(TextView)findViewById(R.id.title_city);
-//        titleUpdateTime=(TextView)findViewById(R.id.title_update_time);
         degreeText=(TextView)findViewById(R.id.degree_text);
         weatherInfoText=(TextView)findViewById(R.id.weather_info_text);
         forecastLayout=(LinearLayout)findViewById(R.id.forecast_layout);
@@ -77,11 +95,9 @@ public class WeatherActivity extends AppCompatActivity {
         sportText=(TextView)findViewById(R.id.sport_text);
         //bing背景图片
         bingPicImg=(ImageView)findViewById(R.id.bing_pic_img);
-        refreshLayout=(SwipeRefreshLayout)findViewById(R.id.swipe_refresh);
-        refreshLayout.setColorSchemeResources(R.color.colorPrimary);
-        drawerLayout=(DrawerLayout)findViewById(R.id.draw_layout);
-        selectButton=(Button)findViewById(R.id.select_button);
+        selectButton=(android.support.design.widget.FloatingActionButton)findViewById(R.id.select_button);
         refreshButton=(com.kyleduo.switchbutton.SwitchButton)findViewById(R.id.select_refresh);
+        menuButton=(android.support.design.widget.FloatingActionButton)findViewById(R.id.menu_button);
         SharedPreferences prefs= PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString =prefs.getString("weather",null);
         if(weatherString!=null){
@@ -104,19 +120,31 @@ public class WeatherActivity extends AppCompatActivity {
             loadBingPic();
         }
         //下拉刷新的监听器
-        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+        swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                requestWeather(mWeatherId);
+                    requestWeather(mWeatherId);
             }
         });
-        //为选择城市添加监听器
+        //为选择城市添加监听器(右滑菜单)
         selectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                drawerLayout.openDrawer(GravityCompat.START);
+          //      drawerLayout.openDrawer(GravityCompat.START);
+                //打开选择城市的列表
+//                Intent intent=new Intent(WeatherActivity.this,Choose.class);
+//                startActivity(intent);
+                drawerLayout.openDrawer(GravityCompat.END);
             }
         });
+        //右下角菜单按钮添加监听控制器
+        menuButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
 
     }
 
@@ -145,7 +173,7 @@ public class WeatherActivity extends AppCompatActivity {
                             }
                             Toast.makeText(WeatherActivity.this, "获取天气失败", Toast.LENGTH_SHORT).show();
                         }
-                        refreshLayout.setRefreshing(false);
+                       swipeRefresh.setRefreshing(false);
                     }
                 });
             }
@@ -156,7 +184,7 @@ public class WeatherActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         Toast.makeText(WeatherActivity.this, "获取天气失败...", Toast.LENGTH_SHORT).show();
-                        refreshLayout.setRefreshing(false);
+                        swipeRefresh.setRefreshing(false);
                     }
                 });
             }
@@ -172,11 +200,14 @@ public class WeatherActivity extends AppCompatActivity {
 //        String updateName=weather.basic.update.updateTime.split(" ")[1];
         String degree=weather.now.temperature+"℃";
         String weatherInfo=weather.now.more.info;
-//        setWeatherPic(weatherInfo);
-        titleCity.setText(cityName);
-//        titleUpdateTime.setText(updateName);
-        degreeText.setText(degree);
-        weatherInfoText.setText(weatherInfo);
+        String NowWeatherDisplay=cityName+" "+degree+" "+weatherInfo;
+//        titleCity.setText(cityName);
+   //     degreeText.setText(degree);
+//        weatherInfoText.setText(weatherInfo);
+        toolbar.setTitle(NowWeatherDisplay);
+       collapsing.setTitle(NowWeatherDisplay);
+        //设置顶部图片的变化
+        setWeatherPic(weatherInfo);
         forecastLayout.removeAllViews();
         for (Forecast forecast:weather.forecastList){
             View view= LayoutInflater.from(this).inflate(R.layout.forecast_item,forecastLayout,false);
@@ -202,19 +233,6 @@ public class WeatherActivity extends AppCompatActivity {
         sportText.setText(sport);
         weatherLayout.setVisibility(View.VISIBLE);
 
-//        //是否自动刷新的监听器
-//        refreshButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                if (isChecked){
-//                    Intent intent=new Intent(WeatherActivity.this,AutoUpdateService.class);
-//                    startService(intent);
-//                }else {
-//                    Toast.makeText(WeatherActivity.this, "关闭自动更新", Toast.LENGTH_SHORT).show();
-//                }
-//            }
-//        });
-
     }
     private void loadBingPic(){
         String requestBingPic="http://guolin.tech/api/bing_pic";
@@ -239,19 +257,23 @@ public class WeatherActivity extends AppCompatActivity {
             }
         });
     }
-//    //设置实时天气的变换，分别为阴天，雨天，晴天
-//    public void setWeatherPic(String weatherInfo){
-//        LinearLayout NowTitle=(LinearLayout)findViewById(R.id.now_title);
-//        if (weatherInfo.contains("云")){
-//            NowTitle.setBackgroundResource(R.mipmap.cloudy);
-//        }else if(weatherInfo.contains("雨")){
-//            NowTitle.setBackgroundResource(R.mipmap.rain);
-//        }else if(weatherInfo.contains("晴")){
-//            NowTitle.setBackgroundResource(R.mipmap.sunny);
-//        }else if(weatherInfo.contains("雪")){
-//            NowTitle.setBackgroundResource(R.mipmap.snow);
-//        }else if(weatherInfo.contains("阴")){
-//            NowTitle.setBackgroundResource(R.mipmap.cloudy);
-//        }
-//    }
+    //设置实时天气的变换，分别为阴天，雨天，晴天
+    public void setWeatherPic(String weatherInfo){
+        ImageView NowPic=(ImageView)findViewById(R.id.nowPic);
+        if (weatherInfo.contains("云")){
+            NowPic.setImageResource(R.mipmap.cloudy);
+        }else if(weatherInfo.contains("雨")){
+            NowPic.setImageResource(R.mipmap.rain);
+        }else if(weatherInfo.contains("晴")){
+            NowPic.setImageResource(R.mipmap.sunny);
+        }else if(weatherInfo.contains("雪")){
+            NowPic.setImageResource(R.mipmap.snow);
+        }else if(weatherInfo.contains("阴")){
+            NowPic.setImageResource(R.mipmap.cloudy);
+        }else if(weatherInfo.contains("风")){
+            NowPic.setImageResource(R.mipmap.wind);
+        }
+    }
+
+
 }
